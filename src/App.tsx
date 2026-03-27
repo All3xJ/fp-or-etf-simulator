@@ -13,7 +13,6 @@ import {
 
 interface SimResult {
   chartData: { anno: number; scenario1Lordo: number; scenario2Lordo: number }[];
-  capitaleEtfPuroLordo: number;
   capitaleFpLordo: number;
   capitaleEtfRimborsoLordo: number;
   totale1Lordo: number;
@@ -39,7 +38,6 @@ function simula(
   const mesiTotali = anni * 12;
   const versamentoMensile = versamentoAnnuo / 12;
   const rimborsoAnnuo = versamentoAnnuo * aliquotaIrpef;
-
   const tassoFpM = Math.pow(1 + rendimentoFp, 1 / 12) - 1;
   const tassoEtfM = Math.pow(1 + rendimentoEtf, 1 / 12) - 1;
 
@@ -55,12 +53,9 @@ function simula(
 
     if (mese % 12 === 0) {
       const guadagnoAnnoFp = capitaleFpLordo - capitaleInizioAnnoFp - versamentoAnnuo;
-      if (guadagnoAnnoFp > 0) {
-        capitaleFpLordo -= guadagnoAnnoFp * 0.2;
-      }
+      if (guadagnoAnnoFp > 0) capitaleFpLordo -= guadagnoAnnoFp * 0.2;
       capitaleInizioAnnoFp = capitaleFpLordo;
       capitaleEtfRimborsoLordo += rimborsoAnnuo;
-
       chartData.push({
         anno: mese / 12,
         scenario1Lordo: Math.round(capitaleFpLordo + capitaleEtfRimborsoLordo),
@@ -71,19 +66,16 @@ function simula(
 
   const tassaUscitaFpFinale = versamentoAnnuo * anni * tassazionePrelievoFp;
   const nettaFpFinale = capitaleFpLordo - tassaUscitaFpFinale;
-
   const plusvalenzaEtfRimborso = capitaleEtfRimborsoLordo - rimborsoAnnuo * anni;
-  const nettoEtfRimborsoFinale = capitaleEtfRimborsoLordo - Math.max(0, plusvalenzaEtfRimborso) * 0.26;
-
+  const nettoEtfRimborsoFinale =
+    capitaleEtfRimborsoLordo - Math.max(0, plusvalenzaEtfRimborso) * 0.26;
   const totale1Netto = nettaFpFinale + nettoEtfRimborsoFinale;
   const totale1Lordo = capitaleFpLordo + capitaleEtfRimborsoLordo;
-
   const plusvalenzaEtfPuro = capitaleEtfPuroLordo - versamentoAnnuo * anni;
   const totale2Netto = capitaleEtfPuroLordo - Math.max(0, plusvalenzaEtfPuro) * 0.26;
 
   return {
     chartData,
-    capitaleEtfPuroLordo,
     capitaleFpLordo,
     capitaleEtfRimborsoLordo,
     totale1Lordo,
@@ -102,9 +94,9 @@ const fmt = (n: number) =>
   new Intl.NumberFormat("it-IT", { maximumFractionDigits: 0 }).format(n) + " €";
 
 const fmtK = (n: number) => {
-  if (Math.abs(n) >= 1_000_000) return (n / 1_000_000).toFixed(1) + "M €";
-  if (Math.abs(n) >= 1_000) return (n / 1_000).toFixed(0) + "k €";
-  return n.toFixed(0) + " €";
+  if (Math.abs(n) >= 1_000_000) return (n / 1_000_000).toFixed(1) + "M";
+  if (Math.abs(n) >= 1_000) return (n / 1_000).toFixed(0) + "k";
+  return n.toFixed(0);
 };
 
 interface SliderProps {
@@ -143,13 +135,42 @@ const CustomTooltip = ({ active, payload, label }: any) => {
         <p className="tooltip-year">Anno {label}</p>
         {payload.map((p: any) => (
           <p key={p.name} style={{ color: p.color }}>
-            {p.name === "scenario1Lordo" ? "FP + ETF" : "Solo ETF"}: {fmtK(p.value)}
+            {p.name === "scenario1Lordo" ? "FP + ETF" : "Solo ETF"}: {fmtK(p.value)} €
           </p>
         ))}
       </div>
     );
   }
   return null;
+};
+
+// Label positioned to the left of the reference dot
+const LeftLabel = ({
+  viewBox,
+  value,
+  color,
+  text,
+}: {
+  viewBox?: { cx: number; cy: number };
+  value?: number;
+  color: string;
+  text: string;
+}) => {
+  if (!viewBox) return null;
+  const { cx, cy } = viewBox;
+  return (
+    <text
+      x={cx - 10}
+      y={cy + 1}
+      textAnchor="end"
+      dominantBaseline="middle"
+      fontSize={10.5}
+      fontFamily="'DM Mono', monospace"
+      fill={color}
+    >
+      {text} {fmtK(value ?? 0)} €
+    </text>
+  );
 };
 
 export default function App() {
@@ -161,7 +182,8 @@ export default function App() {
   const [tassaFp, setTassaFp] = useState(9);
 
   const result = useMemo(
-    () => simula(anni, versamento, irpef / 100, rendFp / 100, rendEtf / 100, tassaFp / 100),
+    () =>
+      simula(anni, versamento, irpef / 100, rendFp / 100, rendEtf / 100, tassaFp / 100),
     [anni, versamento, irpef, rendFp, rendEtf, tassaFp]
   );
 
@@ -170,177 +192,172 @@ export default function App() {
   return (
     <div className="app">
       <header className="header">
-        <div className="header-tag">SIMULATORE FINANZIARIO</div>
-        <h1>Fondo Pensione <span className="vs">vs</span> ETF</h1>
-        <p className="subtitle">Confronta i due scenari di investimento nel lungo periodo</p>
+        <p className="eyebrow">simulatore di investimento</p>
+        <h1>Fondo Pensione <em>vs</em> ETF</h1>
+        <p className="subtitle">Confronta i due scenari nel lungo periodo</p>
       </header>
 
       <main className="main">
-        <section className="panel controls-panel">
-          <h2 className="panel-title">Parametri</h2>
-
+        {/* Parameters */}
+        <aside className="card controls-card">
+          <p className="card-label">parametri</p>
           <div className="sliders">
-            <Slider
-              label="Anni di investimento"
-              value={anni}
-              min={5} max={45} step={1}
-              display={`${anni} anni`}
-              onChange={setAnni}
-            />
-            <Slider
-              label="Versamento annuo"
-              value={versamento}
-              min={1000} max={30000} step={500}
-              display={fmt(versamento)}
-              onChange={setVersamento}
-            />
-            <Slider
-              label="Aliquota IRPEF"
-              value={irpef}
-              min={23} max={43} step={1}
-              display={`${irpef}%`}
-              onChange={setIrpef}
-            />
-            <Slider
-              label="Rendimento Fondo Pensione"
-              value={rendFp}
-              min={1} max={12} step={0.5}
-              display={`${rendFp}%`}
-              onChange={setRendFp}
-            />
-            <Slider
-              label="Rendimento ETF"
-              value={rendEtf}
-              min={1} max={15} step={0.5}
-              display={`${rendEtf}%`}
-              onChange={setRendEtf}
-            />
-            <Slider
-              label="Tassazione uscita FP"
-              value={tassaFp}
-              min={9} max={15} step={0.5}
-              display={`${tassaFp}%`}
-              onChange={setTassaFp}
-            />
+            <Slider label="Anni" value={anni} min={5} max={45} step={1}
+              display={`${anni} anni`} onChange={setAnni} />
+            <Slider label="Versamento annuo" value={versamento} min={1000} max={30000} step={500}
+              display={fmt(versamento)} onChange={setVersamento} />
+            <Slider label="Aliquota IRPEF" value={irpef} min={23} max={43} step={1}
+              display={`${irpef}%`} onChange={setIrpef} />
+            <Slider label="Rendimento FP" value={rendFp} min={1} max={12} step={0.5}
+              display={`${rendFp}%`} onChange={setRendFp} />
+            <Slider label="Rendimento ETF" value={rendEtf} min={1} max={15} step={0.5}
+              display={`${rendEtf}%`} onChange={setRendEtf} />
+            <Slider label="Tassazione uscita FP" value={tassaFp} min={9} max={15} step={0.5}
+              display={`${tassaFp}%`} onChange={setTassaFp} />
           </div>
-
-          <div className="info-box">
-            <span>📅 {fmt(result.versamentoMensile)}/mese</span>
-            <span>💰 Totale versato: {fmt(result.versamentoTotale)}</span>
+          <div className="chips">
+            <div className="chip">
+              <span className="chip-val">{fmt(result.versamentoMensile)}</span>
+              <span className="chip-lbl">al mese</span>
+            </div>
+            <div className="chip">
+              <span className="chip-val">{fmt(result.versamentoTotale)}</span>
+              <span className="chip-lbl">totale versato</span>
+            </div>
           </div>
-        </section>
+        </aside>
 
-        <section className="panel results-panel">
-          <h2 className="panel-title">Risultati dopo {anni} anni</h2>
-
+        {/* Results */}
+        <div className="results-col">
           <div className="scenarios">
-            <div className={`scenario-card ${scenario1Wins ? "winner" : ""}`}>
-              <div className="scenario-header">
-                <span className="scenario-num">Scenario 1</span>
-                {scenario1Wins && <span className="badge">🏆 Migliore</span>}
+            <div className={`scenario-card ${scenario1Wins ? "best" : ""}`}>
+              <div className="sc-top">
+                <span className="sc-num">Scenario 1</span>
+                {scenario1Wins && <span className="best-badge">migliore ✦</span>}
               </div>
-              <div className="scenario-title">Fondo Pensione + ETF rimborsi</div>
-              <div className="amount-row">
-                <span className="label">LORDO</span>
-                <span className="amount lordo">{fmt(result.totale1Lordo)}</span>
+              <p className="sc-name">Fondo Pensione<br />+ ETF rimborsi</p>
+              <div className="sc-amounts">
+                <div className="sc-row muted">
+                  <span>Lordo</span><span>{fmt(result.totale1Lordo)}</span>
+                </div>
+                <div className="sc-row main">
+                  <span>Netto</span><span>{fmt(result.totale1Netto)}</span>
+                </div>
               </div>
-              <div className="amount-row">
-                <span className="label">NETTO</span>
-                <span className="amount netto">{fmt(result.totale1Netto)}</span>
-              </div>
-              <div className="sub-breakdown">
-                <div>└ FP netto: {fmt(result.nettaFpFinale)}</div>
-                <div>└ ETF rimborsi netto: {fmt(result.nettoEtfRimborsoFinale)}</div>
+              <div className="sc-detail">
+                <span>FP: {fmt(result.nettaFpFinale)}</span>
+                <span>ETF: {fmt(result.nettoEtfRimborsoFinale)}</span>
               </div>
             </div>
 
-            <div className={`scenario-card ${!scenario1Wins ? "winner" : ""}`}>
-              <div className="scenario-header">
-                <span className="scenario-num">Scenario 2</span>
-                {!scenario1Wins && <span className="badge">🏆 Migliore</span>}
+            <div className={`scenario-card ${!scenario1Wins ? "best" : ""}`}>
+              <div className="sc-top">
+                <span className="sc-num">Scenario 2</span>
+                {!scenario1Wins && <span className="best-badge">migliore ✦</span>}
               </div>
-              <div className="scenario-title">Solo ETF</div>
-              <div className="amount-row">
-                <span className="label">LORDO</span>
-                <span className="amount lordo">{fmt(result.totale2Lordo)}</span>
-              </div>
-              <div className="amount-row">
-                <span className="label">NETTO</span>
-                <span className="amount netto">{fmt(result.totale2Netto)}</span>
+              <p className="sc-name">Solo ETF</p>
+              <div className="sc-amounts">
+                <div className="sc-row muted">
+                  <span>Lordo</span><span>{fmt(result.totale2Lordo)}</span>
+                </div>
+                <div className="sc-row main">
+                  <span>Netto</span><span>{fmt(result.totale2Netto)}</span>
+                </div>
               </div>
             </div>
           </div>
 
-          <div className={`vantaggio-box ${scenario1Wins ? "pos" : "neg"}`}>
-            <span>Vantaggio Scenario {scenario1Wins ? "1" : "2"} sui netti:</span>
+          <div className={`vantaggio ${scenario1Wins ? "pos" : "neg"}`}>
+            <span>Vantaggio scenario {scenario1Wins ? "1" : "2"}</span>
             <strong>{scenario1Wins ? "+" : ""}{fmt(result.vantaggio)}</strong>
           </div>
-        </section>
+        </div>
 
-        <section className="panel chart-panel">
-          <h2 className="panel-title">Andamento del capitale (lordo)</h2>
-          <ResponsiveContainer width="100%" height={380}>
-            <LineChart data={result.chartData} margin={{ top: 10, right: 30, left: 10, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.07)" />
+        {/* Chart */}
+        <section className="card chart-card">
+          <p className="card-label">andamento del capitale</p>
+          <ResponsiveContainer width="100%" height={340}>
+            <LineChart
+              data={result.chartData}
+              margin={{ top: 16, right: 24, left: 0, bottom: 8 }}
+            >
+              <CartesianGrid strokeDasharray="4 4" stroke="rgba(180,100,120,0.1)" />
               <XAxis
                 dataKey="anno"
-                stroke="#6b7280"
-                tick={{ fill: "#9ca3af", fontSize: 12 }}
-                label={{ value: "Anni", position: "insideBottomRight", offset: -5, fill: "#6b7280" }}
+                tick={{ fill: "#b8909a", fontSize: 11, fontFamily: "'DM Mono',monospace" }}
+                axisLine={{ stroke: "#e8d0d8" }}
+                tickLine={false}
+                label={{ value: "anni", position: "insideBottomRight", offset: -2, fill: "#c4a0aa", fontSize: 11 }}
               />
               <YAxis
-                stroke="#6b7280"
-                tick={{ fill: "#9ca3af", fontSize: 12 }}
+                tick={{ fill: "#b8909a", fontSize: 11, fontFamily: "'DM Mono',monospace" }}
+                axisLine={false}
+                tickLine={false}
                 tickFormatter={fmtK}
+                width={46}
               />
               <Tooltip content={<CustomTooltip />} />
               <Legend
-                formatter={(value) =>
-                  value === "scenario1Lordo" ? "FP + ETF Rimborsi" : "Solo ETF"
+                formatter={(v) =>
+                  v === "scenario1Lordo" ? "FP + ETF Rimborsi" : "Solo ETF"
                 }
-                wrapperStyle={{ color: "#9ca3af", fontSize: 13 }}
+                wrapperStyle={{
+                  fontSize: 12,
+                  color: "#a07888",
+                  fontFamily: "'DM Mono',monospace",
+                  paddingTop: "8px",
+                }}
               />
               <Line
                 type="monotone"
                 dataKey="scenario1Lordo"
-                stroke="#4ade80"
-                strokeWidth={2.5}
+                stroke="#c06878"
+                strokeWidth={2}
                 dot={false}
-                activeDot={{ r: 5 }}
+                activeDot={{ r: 4, fill: "#c06878" }}
               />
               <Line
                 type="monotone"
                 dataKey="scenario2Lordo"
-                stroke="#fb923c"
-                strokeWidth={2.5}
-                strokeDasharray="6 3"
+                stroke="#1a1a1a"
+                strokeWidth={2}
+                strokeDasharray="5 4"
                 dot={false}
-                activeDot={{ r: 5 }}
+                activeDot={{ r: 4, fill: "#1a1a1a" }}
               />
               <ReferenceDot
                 x={anni}
                 y={result.totale1Netto}
-                r={6}
-                fill="#4ade80"
+                r={5}
+                fill="#c06878"
                 stroke="#fff"
                 strokeWidth={2}
-                label={{ value: "Netto 1", position: "top", fill: "#4ade80", fontSize: 11 }}
+                label={
+                  <LeftLabel
+                    color="#c06878"
+                    text="netto 1 ←"
+                    value={result.totale1Netto}
+                  />
+                }
               />
               <ReferenceDot
                 x={anni}
                 y={result.totale2Netto}
-                r={6}
-                fill="#fb923c"
+                r={5}
+                fill="#1a1a1a"
                 stroke="#fff"
                 strokeWidth={2}
-                label={{ value: "Netto 2", position: "bottom", fill: "#fb923c", fontSize: 11 }}
+                label={
+                  <LeftLabel
+                    color="#333"
+                    text="netto 2 ←"
+                    value={result.totale2Netto}
+                  />
+                }
               />
             </LineChart>
           </ResponsiveContainer>
-
-          <p className="chart-note">
-            I punti colorati indicano il capitale <strong>netto in tasca</strong> alla fine del periodo.
-          </p>
+          <p className="chart-note">I punti indicano il capitale netto al termine del periodo.</p>
         </section>
       </main>
     </div>
