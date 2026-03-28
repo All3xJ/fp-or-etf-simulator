@@ -202,7 +202,7 @@ export default function App() {
         <aside className="card controls-card">
           <p className="card-label">parametri</p>
           <div className="sliders">
-            <Slider label="Anni" value={anni} min={5} max={45} step={1}
+            <Slider label="Anni" value={anni} min={5} max={60} step={1}
               display={`${anni} anni`} onChange={setAnni} />
             <Slider label="Versamento annuo" value={versamento} min={1000} max={30000} step={500}
               display={fmt(versamento)} onChange={setVersamento} />
@@ -212,7 +212,7 @@ export default function App() {
               display={`${rendFp}%`} onChange={setRendFp} />
             <Slider label="Rendimento ETF" value={rendEtf} min={1} max={15} step={0.5}
               display={`${rendEtf}%`} onChange={setRendEtf} />
-            <Slider label="Tassazione uscita FP" value={tassaFp} min={9} max={15} step={0.5}
+            <Slider label="Tassazione uscita FP" value={tassaFp} min={9} max={23} step={0.5}
               display={`${tassaFp}%`} onChange={setTassaFp} />
           </div>
           <div className="chips">
@@ -269,7 +269,7 @@ export default function App() {
 
           <div className={`vantaggio ${scenario1Wins ? "pos" : "neg"}`}>
             <span>Vantaggio scenario {scenario1Wins ? "1" : "2"}</span>
-            <strong>{scenario1Wins ? "+" : ""}{fmt(result.vantaggio)}</strong>
+            <strong>+{fmt(Math.abs(result.vantaggio))}</strong>
           </div>
         </div>
 
