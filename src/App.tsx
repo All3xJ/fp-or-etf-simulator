@@ -357,7 +357,22 @@ export default function App() {
               />
             </LineChart>
           </ResponsiveContainer>
-          <p className="chart-note">I punti indicano il capitale netto al termine del periodo.</p>
+          <div className="chart-legend">
+            <div className="legend-item">
+              <svg width="32" height="14" viewBox="0 0 32 14">
+                <line x1="0" y1="5" x2="32" y2="5" stroke="#c06878" strokeWidth="2"/>
+                <line x1="0" y1="10" x2="32" y2="10" stroke="#1a1a1a" strokeWidth="2" strokeDasharray="5 4"/>
+              </svg>
+              <span>curve &mdash; capitale <em>lordo</em> nel tempo</span>
+            </div>
+            <div className="legend-item">
+              <svg width="32" height="14" viewBox="0 0 32 14">
+                <circle cx="9" cy="7" r="5" fill="#c06878" stroke="#fff" strokeWidth="2"/>
+                <circle cx="23" cy="7" r="5" fill="#1a1a1a" stroke="#fff" strokeWidth="2"/>
+              </svg>
+              <span>pallini &mdash; capitale <em>netto</em> finale (imposte applicate)</span>
+            </div>
+          </div>
         </section>
       </main>
     </div>
