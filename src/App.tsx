@@ -222,9 +222,9 @@ export default function App() {
         <aside className="card controls-card">
           <p className="card-label">parametri</p>
           <div className="sliders">
-            <Slider label="Anni" value={anni} min={5} max={60} step={1}
+            <Slider label="Anni" value={anni} min={1} max={60} step={1}
               display={`${anni} anni`} onChange={setAnni} />
-            <Slider label="Versamento annuo" value={versamento} min={1000} max={30000} step={500}
+            <Slider label="Versamento annuo" value={versamento} min={100} max={30000} step={500}
               display={fmt(versamento)} onChange={setVersamento} />
             <Slider label="Aliquota IRPEF" value={irpef} min={23} max={43} step={1}
               display={`${irpef}%`} onChange={setIrpef} />
