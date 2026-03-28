@@ -2,7 +2,23 @@
 
 🔗 **[fp-or-etf-simulator.vercel.app](https://fp-or-etf-simulator.vercel.app/)**
 
-Simulatore interattivo per confrontare due strategie di investimento a lungo termine nel contesto fiscale italiano: versare in un **Fondo Pensione** (con deducibilità IRPEF e reinvestimento dei rimborsi in ETF) oppure investire tutto direttamente in **ETF** fin dall'inizio.
+Simulatore interattivo per confrontare due strategie di investimento a lungo termine nel contesto fiscale italiano: versare in un **Fondo Pensione** (sfruttando la deducibilità IRPEF e reinvestendo i rimborsi in ETF) oppure investire tutto direttamente in **ETF** fin dall'inizio.
+
+---
+
+## ⚠️ Perché il contributo del datore di lavoro non è incluso
+
+Molti dipendenti possono ottenere dal proprio datore di lavoro:
+- il **2,2% della RAL** versato nel fondo, destinando il TFR al fondo pensione
+- l'**1,1% della RAL** aggiuntivo, versando una quota minima propria prevista dal CCNL
+
+Questi contributi, però, si ottengono **solo aderendo al fondo pensione di categoria**, che tipicamente ha rendimenti molto bassi e poco competitivi rispetto a un fondo aperto o a un ETF.
+
+Questa simulazione **dà per scontato che si sfrutti già quel meccanismo** — conviene quasi sempre farlo, indipendentemente da tutto il resto, perché sono soldi gratuiti. Non ha quindi senso includerlo nel confronto.
+
+Il focus qui è su una domanda diversa: una volta messo il TFR nel fondo di categoria e incassati i contributi datoriali, ha senso fare **versamenti volontari aggiuntivi** in **un altro** fondo pensione (tipicamente aperto, con rendimenti più competitivi) per sfruttare la **deducibilità IRPEF**, oppure conviene investire quella stessa cifra direttamente in ETF?
+
+I versamenti al fondo pensione sono deducibili fino a un massimo di **5.164 € annui**. Il rimborso IRPEF che ne deriva viene in questa simulazione reinvestito ogni anno in un ETF.
 
 ---
 
@@ -10,7 +26,7 @@ Simulatore interattivo per confrontare due strategie di investimento a lungo ter
 
 ### Scenario 1 — Fondo Pensione + ETF rimborsi
 
-Ogni mese viene versata una quota nel fondo pensione. Il capitale cresce al rendimento scelto, con tassazione annua del **20% sui guadagni** maturati nell'anno. Una volta l'anno, il rimborso IRPEF (calcolato sull'aliquota marginale impostata) viene reinvestito in un ETF separato. Alla fine del periodo, sul capitale del fondo pensione si applica la **tassazione agevolata sull'uscita** (configurabile, tipicamente tra il 9% e il 23% sul capitale versato); sull'ETF dei rimborsi si applica invece la **tassazione sulle plusvalenze al 26%**.
+Ogni mese viene versata una quota in un fondo pensione aperto. Il capitale cresce al rendimento scelto, con tassazione annua del **20% sui guadagni** maturati nell'anno. Una volta l'anno, il rimborso IRPEF viene reinvestito in un ETF separato. Alla fine del periodo, sul capitale del fondo pensione si applica la **tassazione agevolata sull'uscita** (configurabile tra il 9% e il 23% sul capitale versato); sull'ETF dei rimborsi si applica la **tassazione sulle plusvalenze al 26%**.
 
 ### Scenario 2 — Solo ETF
 
@@ -29,7 +45,7 @@ La simulazione è **mensile**: i versamenti entrano a inizio mese, il capitale c
 | **Anni** | Durata dell'investimento | 1 – 60 |
 | **Versamento annuo** | Importo totale versato ogni anno | 100 – 30.000 € |
 | **Aliquota IRPEF** | Scaglione marginale per calcolo rimborso | 23% – 43% |
-| **Rendimento FP** | Rendimento lordo annuo del fondo pensione | 1% – 12% |
+| **Rendimento FP** | Rendimento lordo annuo del fondo pensione aperto | 1% – 12% |
 | **Rendimento ETF** | Rendimento lordo annuo dell'ETF | 1% – 15% |
 | **Tassazione uscita FP** | Aliquota applicata al capitale versato in uscita | 9% – 23% |
 
