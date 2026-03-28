@@ -12,7 +12,7 @@ import {
 } from "recharts";
 
 interface SimResult {
-  chartData: { anno: number; scenario1Lordo: number; scenario2Lordo: number }[];
+  chartData: { anno: number; scenario1Lordo: number; scenario2Lordo: number; scenario1Netto: number | null; scenario2Netto: number | null }[];
   capitaleFpLordo: number;
   capitaleEtfRimborsoLordo: number;
   totale1Lordo: number;
@@ -60,6 +60,8 @@ function simula(
         anno: mese / 12,
         scenario1Lordo: Math.round(capitaleFpLordo + capitaleEtfRimborsoLordo),
         scenario2Lordo: Math.round(capitaleEtfPuroLordo),
+        scenario1Netto: null,
+        scenario2Netto: null,
       });
     }
   }
@@ -73,6 +75,10 @@ function simula(
   const totale1Lordo = capitaleFpLordo + capitaleEtfRimborsoLordo;
   const plusvalenzaEtfPuro = capitaleEtfPuroLordo - versamentoAnnuo * anni;
   const totale2Netto = capitaleEtfPuroLordo - Math.max(0, plusvalenzaEtfPuro) * 0.26;
+
+  // patch last data point with netto values so tooltip can show them
+  chartData[chartData.length - 1].scenario1Netto = Math.round(totale1Netto);
+  chartData[chartData.length - 1].scenario2Netto = Math.round(totale2Netto);
 
   return {
     chartData,
@@ -130,14 +136,28 @@ function Slider({ label, value, min, max, step, display, onChange }: SliderProps
 
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
+    const d = payload[0]?.payload;
+    const hasNetto = d?.scenario1Netto != null;
     return (
       <div className="custom-tooltip">
         <p className="tooltip-year">Anno {label}</p>
         {payload.map((p: any) => (
           <p key={p.name} style={{ color: p.color }}>
-            {p.name === "scenario1Lordo" ? "FP + ETF" : "Solo ETF"}: {fmtK(p.value)} €
+            {p.name === "scenario1Lordo" ? "FP + ETF" : "Solo ETF"}{" "}
+            <span className="tt-tag">lordo</span>: {fmtK(p.value)} €
           </p>
         ))}
+        {hasNetto && (
+          <div className="tt-netto-block">
+            <p className="tt-netto-title">netto finale</p>
+            <p style={{ color: "#c06878" }}>
+              FP + ETF <span className="tt-tag">netto</span>: {fmtK(d.scenario1Netto)} €
+            </p>
+            <p style={{ color: "#1a1a1a" }}>
+              Solo ETF <span className="tt-tag">netto</span>: {fmtK(d.scenario2Netto)} €
+            </p>
+          </div>
+        )}
       </div>
     );
   }
