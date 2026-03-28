@@ -331,6 +331,31 @@ input[type="range"]::-webkit-slider-thumb:hover {
   font-style: italic;
 }
 
+.chart-legend {
+  display: flex;
+  gap: 2rem;
+  justify-content: center;
+  margin-top: 1rem;
+  flex-wrap: wrap;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.legend-item svg {
+  flex-shrink: 0;
+}
+
+.legend-item em {
+  font-style: italic;
+  color: var(--text);
+}
+
 /* ─── RESPONSIVE ─── */
 @media (max-width: 720px) {
   .main {
