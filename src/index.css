@@ -115,6 +115,31 @@ body {
   color: var(--text);
 }
 
+.slider-input-wrap {
+  display: flex;
+  align-items: center;
+}
+
+.slider-text-input {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.78rem;
+  color: var(--pink);
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  outline: none;
+  width: 80px;
+  text-align: right;
+  padding: 0 2px 1px;
+  transition: border-color 0.15s;
+  cursor: text;
+}
+
+.slider-text-input:focus {
+  border-bottom-color: var(--pink);
+  color: var(--text);
+}
+
 .slider-value {
   font-family: 'DM Mono', monospace;
   font-size: 0.78rem;
