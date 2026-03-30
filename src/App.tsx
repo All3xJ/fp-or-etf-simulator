@@ -126,16 +126,45 @@ interface SliderProps {
   min: number;
   max: number;
   step: number;
-  display: string;
+  suffix?: string;
   onChange: (v: number) => void;
 }
 
-function Slider({ label, value, min, max, step, display, onChange }: SliderProps) {
+function Slider({ label, value, min, max, step, suffix = "", onChange }: SliderProps) {
+  const [inputVal, setInputVal] = useState(String(value));
+  const [focused, setFocused] = useState(false);
+
+  if (!focused && inputVal !== String(value)) {
+    setInputVal(String(value));
+  }
+
+  const commit = (raw: string) => {
+    const n = parseFloat(raw.replace(",", "."));
+    if (!isNaN(n)) {
+      const clamped = Math.min(max, Math.max(min, Math.round(n / step) * step));
+      onChange(clamped);
+      setInputVal(String(clamped));
+    } else {
+      setInputVal(String(value));
+    }
+  };
+
   return (
     <div className="slider-row">
       <div className="slider-label">
         <span>{label}</span>
-        <span className="slider-value">{display}</span>
+        <div className="slider-input-wrap">
+          <input
+            className="slider-text-input"
+            type="text"
+            inputMode="decimal"
+            value={focused ? inputVal : inputVal + (suffix ? " " + suffix : "")}
+            onFocus={() => { setFocused(true); setInputVal(String(value)); }}
+            onBlur={(e) => { setFocused(false); commit(e.target.value); }}
+            onChange={(e) => setInputVal(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
+          />
+        </div>
       </div>
       <input
         type="range"
@@ -143,7 +172,7 @@ function Slider({ label, value, min, max, step, display, onChange }: SliderProps
         max={max}
         step={step}
         value={value}
-        onChange={(e) => onChange(Number(e.target.value))}
+        onChange={(e) => { onChange(Number(e.target.value)); setInputVal(String(e.target.value)); }}
       />
     </div>
   );
@@ -238,17 +267,17 @@ export default function App() {
           <p className="card-label">parametri</p>
           <div className="sliders">
             <Slider label="Anni" value={anni} min={1} max={60} step={1}
-              display={`${anni} anni`} onChange={setAnni} />
+              suffix="anni" onChange={setAnni} />
             <Slider label="Versamento annuo" value={versamento} min={100} max={30000} step={100}
-              display={fmt(versamento)} onChange={setVersamento} />
+              suffix="€" onChange={setVersamento} />
             <Slider label="Aliquota IRPEF" value={irpef} min={23} max={43} step={1}
-              display={`${irpef}%`} onChange={setIrpef} />
+              suffix="%" onChange={setIrpef} />
             <Slider label="Rendimento FP" value={rendFp} min={1} max={12} step={0.5}
-              display={`${rendFp}%`} onChange={setRendFp} />
+              suffix="%" onChange={setRendFp} />
             <Slider label="Rendimento ETF" value={rendEtf} min={1} max={15} step={0.5}
-              display={`${rendEtf}%`} onChange={setRendEtf} />
+              suffix="%" onChange={setRendEtf} />
             <Slider label="Tassazione uscita FP" value={tassaFp} min={9} max={23} step={0.5}
-              display={`${tassaFp}%`} onChange={setTassaFp} />
+              suffix="%" onChange={setTassaFp} />
           </div>
           <div className="chips">
             <div className="chip">
