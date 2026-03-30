@@ -26,6 +26,8 @@ interface SimResult {
   versamentoTotale: number;
 }
 
+const LIMITE_DEDUCIBILITA = 5164.57;
+
 function simula(
   anni: number,
   versamentoAnnuo: number,
@@ -37,7 +39,11 @@ function simula(
   const chartData: SimResult["chartData"] = [];
   const mesiTotali = anni * 12;
   const versamentoMensile = versamentoAnnuo / 12;
-  const rimborsoAnnuo = versamentoAnnuo * aliquotaIrpef;
+
+  // FIX 1: rimborso calcolato solo sulla quota deducibile (max 5.164,57 €/anno)
+  const versamentoDeducibile = Math.min(versamentoAnnuo, LIMITE_DEDUCIBILITA);
+  const rimborsoAnnuo = versamentoDeducibile * aliquotaIrpef;
+
   const tassoFpM = Math.pow(1 + rendimentoFp, 1 / 12) - 1;
   const tassoEtfM = Math.pow(1 + rendimentoEtf, 1 / 12) - 1;
 
@@ -51,11 +57,15 @@ function simula(
     capitaleEtfRimborsoLordo = capitaleEtfRimborsoLordo * (1 + tassoEtfM);
     capitaleEtfPuroLordo = (capitaleEtfPuroLordo + versamentoMensile) * (1 + tassoEtfM);
 
+    // FIX 3: rimborso IRPEF arriva a luglio (mese 7) dell'anno successivo
+    if (mese > 12 && mese % 12 === 7) {
+      capitaleEtfRimborsoLordo += rimborsoAnnuo;
+    }
+
     if (mese % 12 === 0) {
       const guadagnoAnnoFp = capitaleFpLordo - capitaleInizioAnnoFp - versamentoAnnuo;
       if (guadagnoAnnoFp > 0) capitaleFpLordo -= guadagnoAnnoFp * 0.2;
       capitaleInizioAnnoFp = capitaleFpLordo;
-      capitaleEtfRimborsoLordo += rimborsoAnnuo;
       chartData.push({
         anno: mese / 12,
         scenario1Lordo: Math.round(capitaleFpLordo + capitaleEtfRimborsoLordo),
@@ -66,11 +76,16 @@ function simula(
     }
   }
 
-  const tassaUscitaFpFinale = versamentoAnnuo * anni * tassazionePrelievoFp;
+  // FIX 2: tassa uscita FP solo sulla quota effettivamente dedotta
+  const tassaUscitaFpFinale = versamentoDeducibile * anni * tassazionePrelievoFp;
   const nettaFpFinale = capitaleFpLordo - tassaUscitaFpFinale;
-  const plusvalenzaEtfRimborso = capitaleEtfRimborsoLordo - rimborsoAnnuo * anni;
+
+  // Rimborso ultimo anno: arriverà dopo la simulazione, lo aggiungiamo cash senza plusvalenze
+  const capitaleInvestitoEtfRimborsi = rimborsoAnnuo * (anni - 1);
+  const plusvalenzaEtfRimborso = capitaleEtfRimborsoLordo - capitaleInvestitoEtfRimborsi;
   const nettoEtfRimborsoFinale =
-    capitaleEtfRimborsoLordo - Math.max(0, plusvalenzaEtfRimborso) * 0.26;
+    capitaleEtfRimborsoLordo - Math.max(0, plusvalenzaEtfRimborso) * 0.26 + rimborsoAnnuo;
+
   const totale1Netto = nettaFpFinale + nettoEtfRimborsoFinale;
   const totale1Lordo = capitaleFpLordo + capitaleEtfRimborsoLordo;
   const plusvalenzaEtfPuro = capitaleEtfPuroLordo - versamentoAnnuo * anni;
